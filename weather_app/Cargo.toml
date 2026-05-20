@@ -1,0 +1,11 @@
+[package]
+name = "weather_app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ratatui = "0.30.0"
+reqwest = "0.13.3"
+serde = "1.0.228"
+serde_json = "1.0.149"
+tokio = { version = "1.52.3", features = ["full"] }
