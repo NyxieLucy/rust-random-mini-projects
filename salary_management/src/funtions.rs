@@ -1,30 +1,19 @@
-use std::io::{self, Write};
+use std::fs;
+use std::path::Path;
+use crate::account::Account;
+const FILE_PATH: &str = "accounts.json";
 
-pub fn input_shortcut() {
-    let mut input = String::new();
-    println!("Please enter a value:");
-    io::stdin().read_line(&mut input).expect("failed to enter the value");
-    io::stdout().flush().expect("unfortunate");
+pub fn save_accounts(accounts: &Vec<Account>) -> std::io::Result<()> {
+    let json = serde_json::to_string_pretty(accounts)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+    fs::write(FILE_PATH, json)?;
+    Ok(())
 }
-pub fn new_user() {
-    println!("Creating a new user...");
-    let mut cin = input_shortcut();
-    let mut name = input_shortcut();
-    let mut department = input_shortcut();
-    let mut salary_str = input_shortcut();
-    let mut residency = input_shortcut();
-    let mut next_promotion = input_shortcut();
-    let salary: f64 = salary_str.
-    let account = Account::new(
-        cin,
-        department,
-        residency,
-        name,
-        salary,
-        true,
-        false,
-        Some(next_promotion),
-    );
-    println!("New user created: {:?}", account);
-    
+
+pub fn load_accounts() -> Vec<Account> {
+    if !Path::new(FILE_PATH).exists() {
+        return Vec::new();
+    }
+    let data = fs::read_to_string(FILE_PATH).unwrap_or_else(|_| "[]".to_string());
+    serde_json::from_str(&data).unwrap_or_else(|_| Vec::new())
 }

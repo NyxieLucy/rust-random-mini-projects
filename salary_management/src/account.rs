@@ -1,3 +1,6 @@
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Account {
     pub cin: String,
     pub department: String,
@@ -32,4 +35,3 @@ impl Account {
         }
     }
 }
-

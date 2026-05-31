@@ -1,0 +1,12 @@
+[
+  {
+    "cin": "AM13790",
+    "department": "IT",
+    "residency": "AIN AOUDA",
+    "name": "YASSINE SOUHBANI",
+    "salary": 8000.0,
+    "is_enrolled": true,
+    "on_vacation": false,
+    "next_promotion": "04/11/2026"
+  }
+]
