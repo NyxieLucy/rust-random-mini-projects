@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let title = Paragraph::new(header_text).green().block(title_block);
                 frame.render_widget(title, main_layout[0]);
 
-                // --- HORIZONTAL SPLIT GRID WORKSPACE ---
+                // horizontal splits for list andd detailz
                 let workspace = Layout::default()
                     .direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 match current_mode {
                     AppMode::Normal => {
-                        // LEFT PANEL: Build the list items with checkboxes
+                        // left panel for the task w kda m3aha des checkboxes
                         let list_text = if tasks.is_empty() {
                             ".⋆♱ No tasks found! ₊˚⊹ ᰔ \n Press [n] to create a new task.".to_string()
                         } else {
