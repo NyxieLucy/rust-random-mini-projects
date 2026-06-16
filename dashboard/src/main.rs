@@ -3,7 +3,7 @@ pub mod notes;
 use crossterm::event::{self, Event, KeyCode};
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::Stylize;
-use ratatui::widgets::{Block, Paragraph};
+use ratatui::widgets::{Block, Paragraph, Wrap};
 use crate::notes::{Task, load_tasks, save_tasks};
 use std::string::String;
 use std::time::SystemTime;
@@ -75,7 +75,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                             formatted_list
                         };
-                        let list_widget = Paragraph::new(list_text).left_aligned().blue().block(list_block);
+                        let list_widget = Paragraph::new(list_text)
+                            .left_aligned()
+                            .blue()
+                            .block(list_block)
+                            .wrap(Wrap { trim: false });
                         frame.render_widget(list_widget, workspace[0]);
 
                         // RIGHT PANEL: Build the detailed task sheet cards
@@ -89,7 +93,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 current_task.name, current_task.date, status, current_task.description
                             )
                         };
-                        let detail_widget = Paragraph::new(detail_text).left_aligned().yellow().block(detail_block);
+                        let detail_widget = Paragraph::new(detail_text)
+                            .left_aligned()
+                            .yellow()
+                            .block(detail_block)
+                            .wrap(Wrap { trim: false });
                         frame.render_widget(detail_widget, workspace[1]);
                     }
                     
@@ -100,7 +108,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             _ => "Creating Task -> Description Input Field",
                         };
                         let input_display = format!("> {}\n\n(Type characters and hit Enter)", input_buffer);
-                        let input_widget = Paragraph::new(input_display).blue().block(Block::bordered().title(prompt_title));
+                        let input_widget = Paragraph::new(input_display)
+                            .blue()
+                            .block(Block::bordered().title(prompt_title))
+                            .wrap(Wrap { trim: false });
                         
                         // stretch input layout across full split zone for easier reading
                         frame.render_widget(input_widget, main_layout[1]);
