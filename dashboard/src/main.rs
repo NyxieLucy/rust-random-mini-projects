@@ -12,19 +12,21 @@ use chrono::{DateTime, Utc};
 enum AppMode {
     Normal,
     InputName,
-    InputDesc, // New state step for typing descriptions
+    InputDesc, // new state typing w kda
 }
 
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut tasks: Vec<Task> = load_tasks();
+    let mut tasks: Vec<Task> = load_tasks(); // task vector
     let mut current_mode = AppMode::Normal;
     
-    // Buffers to step through input fields
+    //buffers to step through input fields
     let mut temp_name = String::new();
     let mut temp_desc = String::new();
     let mut input_buffer = String::new();
     
     let mut selected_index: usize = 0;
+    let mut is_modifying = false;
 
     ratatui::run(|terminal| {
         loop {
@@ -39,9 +41,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .constraints([Constraint::Length(3), Constraint::Min(0)])
                     .split(frame.area());
 
-                // --- TOP DASHBOARD HEADER ---
+                // the dashboard header
                 let header_text = match current_mode {
-                    AppMode::Normal => "welcome, nyxie | [n] New | [c] Check/Uncheck | [d] Delete | [↑/↓] Navigate | [q] Quit",
+                    AppMode::Normal => "welcome, nyxie | [n] New | [c] Check/Uncheck | [d] Delete | [u] Update | [↑/↓] Navigate | [q] Quit",
                     AppMode::InputName => "愛 STEP 1: Type Task NAME and press [Enter] | [Esc] Cancel",
                     AppMode::InputDesc => "愛 STEP 2: Type Task DESCRIPTION and press [Enter] | [Esc] Cancel",
                 };
@@ -104,8 +106,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // INPUT SYSTEM DRAWS
                     AppMode::InputName | AppMode::InputDesc => {
                         let prompt_title = match current_mode {
-                            AppMode::InputName => "Creating Task -> Name Input Field",
-                            _ => "Creating Task -> Description Input Field",
+                            AppMode::InputName => {
+                                if is_modifying { "Modifying Task -> Name Input Field" } else { "Creating Task -> Name Input Field" }
+                            }
+                            _ => {
+                                if is_modifying { "Modifying Task -> Description Input Field" } else { "Creating Task -> Description Input Field" }
+                            }
                         };
                         let input_display = format!("> {}\n\n(Type characters and hit Enter)", input_buffer);
                         let input_widget = Paragraph::new(input_display)
@@ -142,46 +148,74 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     let _ = save_tasks(&tasks);
                                 }
                             }
+                            KeyCode::Char('u') => {
+                                if !tasks.is_empty() {
+                                    is_modifying = true;
+                                    temp_name = tasks[selected_index].name.clone();
+                                    temp_desc = tasks[selected_index].description.clone();
+                                    input_buffer = tasks[selected_index].name.clone();
+                                    current_mode = AppMode::InputName;
+                                }
+                            }
                             // DELETE ACTION
                             KeyCode::Char('d') => {
                                 if !tasks.is_empty() {
                                     tasks.remove(selected_index);
                                     let _ = save_tasks(&tasks);
+                                    if selected_index >= tasks.len() {
+                                        selected_index = tasks.len().saturating_sub(1);
+                                    }
                                 }
                             }
                             _ => {}
                         },
+                        // input mode 
                         AppMode::InputName => match key.code {
                             KeyCode::Enter => {
                                 if !input_buffer.is_empty() {
                                     temp_name = input_buffer.clone();
-                                    current_mode = AppMode::InputDesc; // Advance down flow step
-                                    input_buffer.clear();
+                                    if is_modifying {
+                                        input_buffer = temp_desc.clone();
+                                    } else {
+                                        input_buffer.clear();
+                                    }
+                                    current_mode = AppMode::InputDesc;
                                 }
                             }
-                            KeyCode::Esc => current_mode = AppMode::Normal,
+                            KeyCode::Esc => {
+                                is_modifying = false;
+                                current_mode = AppMode::Normal;
+                            }
                             KeyCode::Backspace => { input_buffer.pop(); }
                             KeyCode::Char(c) => { input_buffer.push(c); }
                             _ => {}
                         },
                         AppMode::InputDesc => match key.code {
                             KeyCode::Enter => {
-                                temp_desc = input_buffer.clone();
-                                let now = SystemTime::now();
-                                
-                                let datetime: DateTime<Utc> = now.into();
-                                let date_stamp = datetime.format("%Y-%m-%d %H:%M:%S %Z").to_string();
-
-                                // Auto generate human readable date stamps via standard epoch offsets
-
-                                let new_task = Task::new(temp_name.clone(), temp_desc.clone(), date_stamp, false);
-                                tasks.push(new_task);
-                                let _ = save_tasks(&tasks);
-                                
-                                selected_index = tasks.len() - 1;
+                                if !input_buffer.is_empty() {
+                                    temp_desc = input_buffer.clone();
+                                    if is_modifying {
+                                        tasks[selected_index].name = temp_name.clone();
+                                        tasks[selected_index].description = temp_desc.clone();
+                                        let _ = save_tasks(&tasks);
+                                        is_modifying = false;
+                                        current_mode = AppMode::Normal;
+                                    } else {
+                                        let now = SystemTime::now();
+                                        let datetime: DateTime<Utc> = now.into();
+                                        let date_stamp = datetime.format("%Y-%m-%d %H:%M:%S %Z").to_string();
+                                        let new_task = Task::new(temp_name.clone(), temp_desc.clone(), date_stamp, false);
+                                        tasks.push(new_task);
+                                        let _ = save_tasks(&tasks);
+                                        selected_index = tasks.len() - 1;
+                                        current_mode = AppMode::Normal;
+                                    }
+                                }
+                            }
+                            KeyCode::Esc => {
+                                is_modifying = false;
                                 current_mode = AppMode::Normal;
                             }
-                            KeyCode::Esc => current_mode = AppMode::Normal,
                             KeyCode::Backspace => { input_buffer.pop(); }
                             KeyCode::Char(c) => { input_buffer.push(c); }
                             _ => {}
@@ -193,6 +227,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok::<(), Error>(())
     })?;
 
-    println!("Goodbye! using, cya!");
+    println!("Goodbye! thanks for using *wink wink*!");
     Ok(())
 }
