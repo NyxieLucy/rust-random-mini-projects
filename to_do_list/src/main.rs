@@ -1,14 +1,21 @@
 use std::env;
+use std::string::String;
+
+use chrono::{Utc};
+
+use crate::structs::Task;
+mod structs;
 fn main() {
-    let how_many_inputs_in_the_terminal_lol : Vec<String> = env::args().collect();
     
     let mut list : Vec<String> = Vec::new();
-    for i in 1 .. how_many_inputs_in_the_terminal_lol.len() {
-        let new_arg:String = how_many_inputs_in_the_terminal_lol[i].clone();
-        list.push(new_arg);
-    }
 
-    for i in 0..list.len(){
-        println!("[ ] {:?}", list[i]);
-    }
+    let new_task_title:String =  env::args().skip(1).collect();
+    let new_date = Utc::now();
+    let new_task = Task{
+        task: new_task_title.clone(),
+        date : new_date,
+        checked: false,
+    };
+    list.push(new_task_title);
+    println!("{:?}", new_task);
 }
